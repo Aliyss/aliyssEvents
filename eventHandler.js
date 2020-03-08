@@ -10,14 +10,12 @@ exports.events = (_instance) => {
 	
 	client.on('authenticated', _instance.saveAuth)
 	
-	client.on('message_create', msg => {
-		let message = converter.message(msg, _instance)
-		commandInput.command(message, _instance)
+	client.on('message_create', async msg => {
+		await messageControl(msg, _instance)
 	})
 
-	client.on('message', msg => {
-		let message = converter.message(msg, _instance)
-		commandInput.command(message, _instance)
+	client.on('message', async msg => {
+		await messageControl(msg, _instance)
 	});
 
 	client.on('text', msg => {
@@ -25,4 +23,23 @@ exports.events = (_instance) => {
 	});
 	
 	_instance.disableEvents();
+}
+
+const messageControl = async (msg, _instance) => {
+	let command = converter.command(msg, _instance)
+	let returnMessage = await commandInput.command(command, _instance)
+	if (!command.isCommand) {
+		return;
+	}
+	if (!returnMessage) {
+		console.log(`[${_instance.id}] Error: ${msg}`)
+		return;
+	}
+	let cmdMessage = converter.convertDefault(returnMessage, _instance)
+	let logMessage = await command.send(cmdMessage);
+	if (!logMessage) {
+		console.log(`[${_instance.id}] Error: ${msg}`)
+		return;
+	}
+	console.log(`[${_instance.id}] Response: ${logMessage.id}`)
 }
