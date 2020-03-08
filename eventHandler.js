@@ -26,7 +26,7 @@ exports.events = (_instance) => {
 }
 
 const messageControl = async (msg, _instance) => {
-	let command = converter.command(msg, _instance)
+	let command = await converter.command(msg, _instance)
 	let returnMessage = await commandInput.command(command, _instance)
 	if (!command.isCommand) {
 		return;
