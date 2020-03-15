@@ -27,16 +27,23 @@ exports.events = (_instance) => {
 
 const messageControl = async (msg, _instance) => {
 	let command = await converter.command(msg, _instance)
-	let returnMessage = await commandInput.command(command, _instance)
-	if (!command.isCommand) {
+	if (!command.isCommand && _instance.layout.nlp && _instance.layout.nlp.ignore && _instance.layout.nlp.ignore.includes(command.author.id)) {
 		return;
 	}
-	if (!returnMessage) {
-		console.log(`[${_instance.id}] Error: ${msg}`)
+	let returnMessage = await commandInput.command(command, _instance)
+	if (!command.isCommand && (!_instance.layout.nlp || !_instance.layout.nlp.no_prefix)) {
+		return;
+	}
+	if (!returnMessage || returnMessage.error) {
+		console.log(`[${_instance.id}] Error: ${returnMessage.error}`)
 		return;
 	}
 	let cmdMessage = converter.convertDefault(returnMessage, _instance)
-	let logMessage = await command.send(cmdMessage);
+	if (!cmdMessage) {
+		return;
+	}
+	let logMessage = await converter.command(await command.send(cmdMessage), _instance)
+	_instance.logs.push(logMessage.id)
 	if (!logMessage) {
 		console.log(`[${_instance.id}] Error: ${msg}`)
 		return;
