@@ -27,7 +27,14 @@ exports.events = (_instance) => {
 
 const messageControl = async (msg, _instance) => {
 	let command = await converter.command(msg, _instance)
-	if (!command.isCommand && _instance.layout.nlp && _instance.layout.nlp.ignore && _instance.layout.nlp.ignore.includes(command.author.id)) {
+	if (!command.isCommand
+		&& _instance.layout.nlp
+		&& _instance.layout.nlp.ignore
+		&& (
+			(_instance.layout.nlp.ignore.channels && _instance.layout.nlp.ignore.channels.includes(command.channel.id)) ||
+			(_instance.layout.nlp.ignore.authors && _instance.layout.nlp.ignore.authors.includes(command.author.id))
+		)
+	) {
 		return;
 	}
 	let returnMessage = await commandInput.command(command, _instance)
