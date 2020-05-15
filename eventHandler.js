@@ -55,16 +55,6 @@ const messageControl = async (msg, _instance) => {
 	let command = await converter.command(msg, _instance)
 	if (
 		!command.isPrefixed
-		&& command.layout.nlp
-		&& command.layout.nlp.ignore
-		&& (
-			(command.layout.nlp.ignore.channels && command.layout.nlp.ignore.channels.includes(command.channel.id)) ||
-			(command.layout.nlp.ignore.authors && command.layout.nlp.ignore.authors.includes(command.author.id))
-		)) {
-		console.log('NLP is but disabled')
-		return;
-	} else if (
-		!command.isPrefixed
 		&& (
 			!command.layout.nlp ||
 			(!command.layout.nlp.no_prefix && !command.layout.nlp.on_command)
@@ -85,9 +75,12 @@ const messageControl = async (msg, _instance) => {
 	try {
 		logMessage = await converter.command(await command.send(cmdMessage), _instance)
 	} catch (e) {
-		console.error(e)
+		// console.log(e)
 	}
 	
+	if (!logMessage.id) {
+		return;
+	}
 	_instance.logs.push(logMessage.id)
 	if (!logMessage) {
 		console.log(`[${_instance.id}] Error: ${msg}`)
