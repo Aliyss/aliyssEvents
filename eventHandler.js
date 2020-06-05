@@ -12,15 +12,27 @@ exports.events = (_instance) => {
 		client.on('authenticated', _instance.saveAuth)
 
 		client.on('message_create', async msg => {
-			await messageControl(msg, _instance, 'message')
+			try {
+				await messageControl(msg, _instance, 'message')
+			} catch (e) {
+				console.log(e)
+			}
 		})
 
 		client.on('message', async msg => {
-			await messageControl(msg, _instance, 'message')
+			try {
+				await messageControl(msg, _instance, 'message')
+			} catch (e) {
+				console.log(e)
+			}
 		});
 
 		client.on('messageReactionAdd', async msg => {
-			await messageControl(msg, _instance, 'reaction')
+			try {
+				await messageControl(msg, _instance, 'reaction')
+			} catch (e) {
+				console.log(e)
+			}
 		});
 
 		client.on('text', msg => {
@@ -32,7 +44,13 @@ exports.events = (_instance) => {
 }
 
 const messageControl = async (msg, _instance, type) => {
-	let command = await converter.command(msg, _instance, type)
+	let command;
+	try {
+		command = await converter.command(msg, _instance, type)
+	} catch (e) {
+		console.error(e)
+		return;
+	}
 	if (
 		!command.isPrefixed
 		&& (
@@ -48,13 +66,13 @@ const messageControl = async (msg, _instance, type) => {
 		console.log(`[${_instance.id}] Error: ${returnMessage.error}`)
 		return;
 	}
-	let cmdMessage = converter.convertDefault(returnMessage, _instance, command)
-	if (!cmdMessage) {
+	let { content, options } = await converter.convertDefault(returnMessage, _instance, command)
+	if (!content) {
 		return;
 	}
 	let logMessage;
 	try {
-		logMessage = await converter.command(await command.send(cmdMessage), _instance)
+		logMessage = await converter.command(await command.send(content, options), _instance)
 	} catch (e) {
 		console.log(e)
 	}
